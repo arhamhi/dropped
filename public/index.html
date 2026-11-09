@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Dropped</title>
+<meta name="description" content="A street-view guessing game for you and a friend. Land somewhere on Earth, pin where you think you are, closest pin wins.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#0A0A0A">
+<link rel="icon" href="/icon-32.png" type="image/png" sizes="32x32">
+<link rel="icon" href="/icon-192.png" type="image/png" sizes="192x192">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:title" content="Dropped">
+<meta property="og:description" content="Land somewhere on Earth. Pin where you think you are. Closest pin wins.">
+<meta property="og:image" content="/og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.css">
+<link rel="stylesheet" href="/style.css">
+</head>
+<body data-screen="home">
+<noscript><p class="noscript">Dropped is a live game and needs JavaScript turned on.</p></noscript>
+
+<div id="world" class="world" aria-hidden="true"></div>
+
+<!-- Home -->
+<main id="home" class="screen panel-screen">
+  <div class="home-col">
+    <div class="pregame onair" aria-hidden="true">
+      <div class="pg-tag">On<br>air</div>
+      <div class="pg-players">
+        <div class="pg-p" style="--c: var(--lead)"><span class="n">You</span><span class="s" id="airName">Your name</span></div>
+        <div class="pg-p waiting" style="--c: var(--support)"><span class="n">Opponent</span><span class="s">?</span></div>
+      </div>
+    </div>
+    <h1 class="wordmark">Dropped</h1>
+    <p class="lede">You land on a street somewhere on Earth. Look around, pin where you think you are. Closest pin wins.</p>
+
+    <form id="homeForm" class="stack" novalidate>
+      <div class="field">
+        <label for="name">Name on the scoreboard</label>
+        <input id="name" name="name" maxlength="24" autocomplete="nickname" spellcheck="false">
+        <p class="field-err" id="nameErr" role="alert"></p>
+      </div>
+      <p class="join-note" id="joinNote" hidden></p>
+      <div class="actions" id="createActions">
+        <button class="btn lead" type="submit" data-mode="duo">Challenge a friend</button>
+        <button class="btn" type="submit" data-mode="solo">Play solo</button>
+      </div>
+      <div class="actions" id="joinActions" hidden>
+        <button class="btn lead" type="submit" data-mode="join">Join the game</button>
+        <a class="btn ghost" href="/">Start my own instead</a>
+      </div>
+    </form>
+
+    <form id="codeForm" class="code-form" novalidate>
+      <label for="code">Friend sent you a code?</label>
+      <div class="row">
+        <input id="code" name="code" maxlength="5" autocapitalize="characters" autocomplete="off" spellcheck="false" inputmode="text">
+        <button class="btn" type="submit">Join</button>
+      </div>
+      <p class="field-err" id="codeErr" role="alert"></p>
+    </form>
+
+    <section class="history" id="history" aria-labelledby="historyTitle" hidden>
+      <h2 id="historyTitle">Past games</h2>
+      <p class="hint">Saved in this browser only. No account, nothing on a server.</p>
+      <ul class="records" id="records"></ul>
+      <ol class="runs" id="runs"></ol>
+      <button type="button" class="link-btn" id="clearRuns">Clear past games</button>
+    </section>
+  </div>
+</main>
+
+<!-- Lobby -->
+<main id="lobby" class="screen panel-screen">
+  <div class="lobby-col">
+    <div class="pregame" id="pregame" role="group" aria-label="Players"></div>
+    <h2 class="title">Set up the game</h2>
+    <p class="hint" id="settingsHint"></p>
+
+    <form id="settings" class="settings">
+      <fieldset>
+        <legend>Difficulty</legend>
+        <div class="seg">
+          <label><input type="radio" name="difficulty" value="easy"><span>Easy</span></label>
+          <label><input type="radio" name="difficulty" value="medium"><span>Medium</span></label>
+          <label><input type="radio" name="difficulty" value="hard"><span>Hard</span></label>
+          <label><input type="radio" name="difficulty" value="mixed"><span>Mixed</span></label>
+        </div>
+        <p class="seg-note" id="difficultyNote"></p>
+      </fieldset>
+      <fieldset>
+        <legend>Rounds</legend>
+        <div class="seg">
+          <label><input type="radio" name="rounds" value="3"><span>3</span></label>
+          <label><input type="radio" name="rounds" value="5"><span>5</span></label>
+          <label><input type="radio" name="rounds" value="10"><span>10</span></label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Timer</legend>
+        <div class="seg seg-wrap">
+          <label data-duo-only><input type="radio" name="timer" value="first15"><span>15s after first pin</span></label>
+          <label data-duo-only><input type="radio" name="timer" value="first30"><span>30s after first pin</span></label>
+          <label><input type="radio" name="timer" value="fixed60"><span>60s</span></label>
+          <label><input type="radio" name="timer" value="fixed90"><span>90s</span></label>
+          <label><input type="radio" name="timer" value="fixed120"><span>2 min</span></label>
+          <label><input type="radio" name="timer" value="none"><span>No clock</span></label>
+        </div>
+        <p class="seg-note" id="timerNote"></p>
+      </fieldset>
+      <fieldset>
+        <legend>Camera</legend>
+        <div class="seg">
+          <label><input type="radio" name="camera" value="free"><span>Walk around</span></label>
+          <label><input type="radio" name="camera" value="frozen"><span>Frozen</span></label>
+        </div>
+        <p class="seg-note" id="cameraNote"></p>
+      </fieldset>
+    </form>
+
+    <section class="invite" id="invite">
+      <h3>Invite your friend</h3>
+      <p class="hint">Send them this link, or the code <b id="inviteCode"></b>.</p>
+      <div class="row">
+        <input id="inviteLink" readonly aria-label="Invite link">
+        <button type="button" class="btn" id="copyBtn">Copy link</button>
+      </div>
+    </section>
+
+    <a class="back" href="/">Leave this game</a>
+    <div class="start">
+      <button type="button" class="btn lead big" id="startBtn">Start the game</button>
+      <p class="hint" id="startNote"></p>
+    </div>
+  </div>
+</main>
+
+<!-- Round -->
+<div id="round" class="screen">
+  <div class="pano" id="pano">
+    <p class="pano-loading">Dropping you in</p>
+    <div id="panoJs" class="pano-js" role="application" aria-label="Street view of where you landed" hidden></div>
+    <iframe id="panoFrame" title="Street view of where you landed" referrerpolicy="no-referrer-when-downgrade" allow="fullscreen; accelerometer; gyroscope"></iframe>
+    <div class="shield shield-bottom" aria-hidden="true"></div>
+    <div class="shield shield-all" id="freeze" hidden><span>Frozen camera</span></div>
+  </div>
+
+  <div class="bug" id="bug" role="group" aria-label="Scoreboard">
+    <div class="bug-round"><span class="bug-rd">Rd</span><b id="bugRound">1</b><span id="bugOf">of 5</span></div>
+    <div class="bug-tier" id="bugTier"></div>
+    <div class="bug-players" id="bugPlayers"></div>
+    <div class="bug-clock" id="bugClock" hidden><span class="sr-only">Time left </span><b id="clock">0:15</b></div>
+  </div>
+  <p class="status" id="status" role="status" aria-live="polite"></p>
+
+  <section class="guess" id="guess" aria-label="Guess map">
+    <div class="guess-map" id="guessMap"><span class="crosshair" aria-hidden="true"></span></div>
+    <div class="guess-bar">
+      <button type="button" class="btn lead" id="lockBtn" disabled>Pin the map first</button>
+      <button type="button" class="btn icon-btn" id="sizeBtn" aria-pressed="false" title="Bigger map">Bigger</button>
+    </div>
+  </section>
+  <button type="button" class="btn lead map-toggle" id="mapToggle" aria-expanded="false" aria-controls="guess">Open map</button>
+</div>
+
+<!-- Reveal and final share the world map behind them -->
+<div id="reveal" class="screen">
+  <section class="third" id="third" aria-live="polite">
+    <div class="third-head">
+      <p class="third-kicker" id="revealKicker"></p>
+      <h2 class="third-place" id="revealPlace"></h2>
+      <p class="third-sub" id="revealSub"></p>
+    </div>
+    <ol class="third-rows" id="revealRows"></ol>
+    <div class="third-foot">
+      <button type="button" class="btn lead" id="nextBtn">Next round</button>
+      <p class="hint" id="nextNote"></p>
+    </div>
+  </section>
+</div>
+
+<div id="final" class="screen">
+  <header class="slate" id="slate" aria-live="polite">
+    <p class="slate-kicker">Full time</p>
+    <div class="slate-line">
+      <h2 class="slate-title" id="finalTitle"></h2>
+      <p class="slate-score" id="finalScore"></p>
+    </div>
+    <p class="slate-sub" id="finalSub"></p>
+  </header>
+  <section class="third final-panel" aria-label="Round by round">
+    <div class="table-wrap">
+      <table class="final-table" id="finalTable"></table>
+    </div>
+    <div class="third-foot">
+      <button type="button" class="btn lead" id="againBtn">Play again</button>
+      <a class="btn ghost" href="/">Home</a>
+      <p class="hint" id="againNote"></p>
+    </div>
+  </section>
+</div>
+
+<div class="conn" id="conn" role="status" aria-live="polite" hidden></div>
+
+<script src="https://unpkg.com/maplibre-gl@5.6.0/dist/maplibre-gl.js"></script>
+<script type="module" src="/app.js"></script>
+</body>
+</html>
