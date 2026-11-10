@@ -52,7 +52,7 @@ function theme(map) {
   set('boundary_state', 'line-color', '#55595F');
   for (const id of ['highway_major_inner', 'highway_motorway_inner', 'highway_minor']) set(id, 'line-color', '#6B7077');
   // place names only once you are zoomed in far enough for them to matter
-  const minZoom = { place_state: 5, place_city_large: 5, place_city: 6, place_town: 8, place_village: 10, place_other: 11, place_suburb: 11 };
+  const minZoom = { place_state: 4, place_city_large: 3, place_city: 4, place_town: 6, place_village: 8, place_other: 10, place_suburb: 10 };
   for (const [id, z] of Object.entries(minZoom)) if (map.getLayer(id)) map.setLayerZoomRange(id, z, 24);
   for (const id of ['place_country_major', 'place_country_minor', 'place_country_other', 'place_state', 'place_city_large', 'place_city', 'place_town', 'place_village', 'water_name']) {
     set(id, 'text-color', id === 'water_name' ? '#8FB8DE' : '#EBEBEB');
