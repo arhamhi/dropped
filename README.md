@@ -8,7 +8,7 @@
 </p>
 
 <p align="center">
-  <a href="https://dropped.drainforce.workers.dev"><b>Play it here</b></a> ·
+  <a href="https://dropped.arhamhfz.workers.dev"><b>Play it here</b></a> ·
   <a href="LICENSE">MIT licence</a> ·
   runs on one Cloudflare Worker
 </p>
